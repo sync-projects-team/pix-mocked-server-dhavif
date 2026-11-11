@@ -279,17 +279,6 @@ export class PSP {
         return (await this._editCob(itm, TipoCob.vencimento)) as CobVPatchResponse;
     }
 
-    async _removeCob(key: PixID & { IdOwner: string }): Promise<boolean> {
-        await this.loccob.remove(key.IdOwner, { txid: key.txid });
-        return await this.cob.remove(key.IdOwner, { txid: key.txid });
-    }
-    async removeCob(key: PixID & { IdOwner: string }): Promise<boolean> {
-        return this._removeCob(key);
-    }
-    async removeCobV(key: PixID & { IdOwner: string }): Promise<boolean> {
-        return this._removeCob(key);
-    }
-
     async readLoc({ IdOwner, id }: LocID & { IdOwner: string }): Promise<LocGetResponse> {
         const itm: any = await this.locations.read(IdOwner, { id });
         if (itm) {

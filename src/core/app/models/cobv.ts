@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNotEmptyObject, IsNumberString, ValidateNested } from "class-validator"
+import { IsNotEmpty, IsNotEmptyObject, IsNumberString, ValidateNested, IsIn, IsOptional } from "class-validator"
 import { Chave, ICriacao, ValidadeVencimento, IInfoAdicional, Pessoa, PixID, ModalidadeAlteracao, Situacao, PixRevisao, IJuros, IDesconto, IMulta } from "../models"
 import { Type } from "class-transformer"
 import { IntersectionType } from '@nestjs/swagger';
@@ -80,6 +80,8 @@ export class CobVPatchRequest {
     @Type(() => Pessoa)
     devedor?: Pessoa
     solicitacaoPagador?: string
+    @IsOptional()
+    @IsIn([Situacao.Removida], { message: 'O campo $$ não respeita o schema.' })
     status?: "REMOVIDA_PELO_USUARIO_RECEBEDOR"
 }
 
