@@ -56,9 +56,11 @@ export class CobVPutRequest {
     @ValidateNested({})
     @Type(() => CobVValor)
     valor: CobVValor
+    @IsOptional()
     @ValidateNested({})
     @Type(() => ValidadeVencimento)
     calendario?: ValidadeVencimento
+    @IsOptional()
     @ValidateNested()
     @Type(() => Pessoa)
     devedor?: Pessoa
@@ -67,15 +69,19 @@ export class CobVPutRequest {
 }
 
 export class CobVPatchRequest {
+    @IsOptional()
     @ValidateNested({})
     @Type(() => LocID)
     loc?: LocID
+    @IsOptional()
     @ValidateNested()
     @Type(() => CobVValor)
     valor?: CobVValor
+    @IsOptional()
     @ValidateNested()
     @Type(() => ValidadeVencimento)
     calendario?: ValidadeVencimento
+    @IsOptional()
     @ValidateNested({})
     @Type(() => Pessoa)
     devedor?: Pessoa
@@ -127,8 +133,10 @@ export interface ICobVQueryResponse {
 export class CobVGetFilter {
     inicio: string
     fim: string
+    @IsOptional()
     @IsCPFValid({ message: 'O campo $$ não respeita o schema.' })
     cpf?: string
+    @IsOptional()
     @IsCNPJValid({ message: 'O campo $$ não respeita o schema.' })
     cnpj?: string
     paginacao?: { paginaAtual: number, itensPorPagina: number }

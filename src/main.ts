@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { MemoryDB } from './libs/fakedb';
 import {correntistas} from './data/db.json'
 import { AuthModule } from './auth.module';
-import { ValidationPipe } from '@nestjs/common';
+import { configureApp } from './app.setup';
 import { SwaggerModule } from '@nestjs/swagger';
 import { swaggerAppConfig } from './swagger-app.config';
 import { swaggerAuthConfig } from './swagger-auth.config';
@@ -12,7 +12,10 @@ async function bootstrap() {
   
   
   MemoryDB.create("COB", ['txid']);
+  MemoryDB.create("COB_HIST", ['id']);
   MemoryDB.create("LOCATIONS", ['id', 'uuid']);
+  MemoryDB.create("LOC_COB", ['id', 'txid']);
+  MemoryDB.create("REC", ['idRec']);
 
   const ServerErrorTypes = {
     400: { type: "https://pix.bcb.gov.br/api/v2/error/CobOperacaoInvalida", title: "Payload inválido" },
@@ -22,14 +25,14 @@ async function bootstrap() {
 }
 
 
-  const corr =  MemoryDB.create("CORRENTISTAS", ['chave']);
+  const corr =  MemoryDB.create("CORRENTISTAS", ['chave', 'cpfcnpj']);
     await Promise.all(correntistas.map(async (c) => {
       await corr.add('DEV', c)
     }));
   
   //SERVIÇO PRINCIPAL  
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  configureApp(app);
   
   const appDocument = SwaggerModule.createDocument(app, swaggerAppConfig);
   SwaggerModule.setup('api-docs', app, appDocument);

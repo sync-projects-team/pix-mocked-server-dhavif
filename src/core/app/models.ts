@@ -1,4 +1,4 @@
-import { IsDateString, IsEmail, IsNotEmpty, MaxLength, Min } from "class-validator"
+import { IsDateString, IsEmail, IsNotEmpty, MaxLength, Min, IsOptional, ValidateIf } from "class-validator"
 import { IsCNPJValid, IsCPFValid, IsDICTExists, IsDICTValid, NotPast } from "../../validators/custom-validators"
 
 
@@ -41,6 +41,7 @@ export interface ICriacao {
 }
 
 export class Expiracao {
+    @IsOptional()
     @Min(1, { message: 'O campo $$ é igual ou menor que zero.' })
     expiracao: number
 }
@@ -53,19 +54,25 @@ export class Vencimento {
 }
 
 export class ValidadeVencimento extends Vencimento {
+    @IsOptional()
     @Min(0, { message: 'O campo $$ não respeita o schema.' })
     validadeAposVencimento: number
 }
 
 export class DadosPessoa {
+    @IsOptional()
     @IsEmail({}, { message: 'O campo $$ não respeita o schema.' })
     email?: string
+    @IsOptional()
     @MaxLength(200, { message: 'O campo $$ não respeita o schema.' })
     logradouro: string
+    @IsOptional()
     @MaxLength(200, { message: 'O campo $$ não respeita o schema.' })
     cidade: string
+    @IsOptional()
     @MaxLength(2, { message: 'O campo $$ não respeita o schema.' })
     uf: string
+    @IsOptional()
     @MaxLength(8, { message: 'O campo $$ não respeita o schema.' })
     cep: string
 }
@@ -74,8 +81,10 @@ export class Pessoa extends DadosPessoa {
     @IsNotEmpty({ message: 'O campo $$ não respeita o schema.' })
     @MaxLength(200, { message: 'O campo $$ não respeita o schema.' })
     nome: string
+    @ValidateIf((o) => o.cnpj !== undefined || o.cpf === undefined)
     @IsCNPJValid({ message: 'O campo $$ não respeita o schema.' })
     cnpj?: string
+    @ValidateIf((o) => o.cpf !== undefined || o.cnpj === undefined)
     @IsCPFValid({ message: 'O campo $$ não respeita o schema.' })
     cpf?: string
 }

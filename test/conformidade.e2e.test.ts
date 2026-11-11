@@ -1,12 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ConflictException, ExecutionContext, ForbiddenException, HttpException, INestApplication, ServiceUnavailableException, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ConflictException, ExecutionContext, ForbiddenException, HttpException, INestApplication, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import * as request from 'supertest';
 import { randomUUID } from 'crypto';
 import { lastValueFrom, throwError } from 'rxjs';
 import { MemoryDB } from '../src/libs/fakedb';
 import { correntistas } from '../src/data/db.json';
-import { errorFormatter } from '../src/libs/utils';
 import { PSP } from '../src/core/app/psp';
 import { Situacao } from '../src/core/app/models';
 import { HttpInterceptor } from '../src/http.interceptor';
@@ -14,11 +13,12 @@ import { CobController } from '../src/controllers/cob.controller';
 import { CobVController } from '../src/controllers/cobv.controller';
 import { CobRController } from '../src/controllers/cobr.controller';
 import { LocationController } from '../src/controllers/location.controller';
+import { configureApp } from '../src/app.setup';
 
 const ERROR_URL = 'https://pix.bcb.gov.br/api/v2/error';
 const TOKEN = '123-abc';
 
-describe('CONFORMIDADE API PIX', () => {
+describe('CONFORMIDADE API PIX - controllers isolados (inclui CobRController, não registrado no AppModule)', () => {
     let app: INestApplication;
     let psp: PSP;
     let chave: string;
@@ -40,14 +40,7 @@ describe('CONFORMIDADE API PIX', () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe({
-            disableErrorMessages: false,
-            transform: true,
-            skipMissingProperties: true,
-            exceptionFactory: (errors) => {
-                throw new BadRequestException(errorFormatter(errors))
-            }
-        }));
+        configureApp(app);
         await app.init();
         psp = app.get<PSP>(PSP);
     });

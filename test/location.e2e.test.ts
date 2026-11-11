@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, INestApplication, ValidationError, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { randomUUID } from 'crypto';
 import { MemoryDB } from '../src/libs/fakedb';
 import { correntistas } from '../src/data/db.json'
 import { TipoCob } from '../src/core/app/models';
+import { configureApp } from '../src/app.setup';
 
 describe('LOC', () => {
     let app: INestApplication;
@@ -26,33 +27,8 @@ describe('LOC', () => {
         }).compile();
 
 
-        const errorFormatter = (errors: ValidationError[], errMessage?: any, parentField?: string): any => {
-            const message = errMessage || {};
-            let errorField = '';
-            let validationsList;
-
-            errors.forEach((error) => {
-                errorField = parentField ? `${parentField}.${error.property}` : error?.property;
-                if (!error?.constraints && error?.children?.length) {
-                    errorFormatter(error.children, message, errorField);
-                } else {
-                    validationsList = Object.values(error?.constraints);
-                    message[errorField] = validationsList.length > 0 ? validationsList.pop() : 'Invalid Value!';
-                }
-            });
-
-            return message;
-        }
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe({
-            disableErrorMessages: false,
-            transform: true,
-            skipMissingProperties: true,
-            exceptionFactory: (errors) => {
-                throw new BadRequestException(errorFormatter(errors))
-
-            }
-        }));
+        configureApp(app);
         await app.init();
     });
 
@@ -149,6 +125,7 @@ describe('LOC', () => {
                 let itm: any = undefined;
                 await request(app.getHttpServer())
                     .put(`/loc`)
+                    .send({ tipoCob: "cob" })
                     .set("mocked-token", "123-abc")
                     .expect(200)
                     .then(v => itm = v.body);

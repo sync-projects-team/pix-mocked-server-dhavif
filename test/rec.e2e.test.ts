@@ -1,12 +1,13 @@
-import { BadRequestException, INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { randomUUID } from "crypto";
 import { AppModule } from "../src/app.module";
 import { MemoryDB } from "../src/libs/fakedb";
-import { errorFormatter, flatDate } from "../src/libs/utils";
+import { flatDate } from "../src/libs/utils";
 import { AtivacaoRecorrencia, PeriodicidadeRecorrencia, PoliticaRetentativa, RecPostRequest } from "../src/core/app/models/rec";
 import { gerarCPF } from "../src/libs/documentos";
 import { expectPost200, expectPost201, expectPost400, expectPost401 } from "./e2e";
+import { configureApp } from '../src/app.setup';
 
 describe('REC', () => {
     let app: INestApplication;
@@ -21,15 +22,7 @@ describe('REC', () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.useGlobalPipes(new ValidationPipe({
-            disableErrorMessages: false,
-            transform: true,
-            skipMissingProperties: true,
-            exceptionFactory: (errors) => {
-                throw new BadRequestException(errorFormatter(errors))
-
-            }
-        }));
+        configureApp(app);
         await app.init();
     });
 
