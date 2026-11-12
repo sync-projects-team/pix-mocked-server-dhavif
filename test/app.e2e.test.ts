@@ -158,6 +158,30 @@ describe('APLICAÇÃO (AppModule + configureApp)', () => {
                     ]));
             });
 
+        it('PATCH /cob/{txid} com calendario vazio preserva a expiração existente', async () => {
+            await request(app.getHttpServer())
+                .put(`/cob/${txid}`).send({ chave, valor: { original: '1.00' } }).set("mocked-token", TOKEN)
+                .expect(200)
+                .expect((res) => expect(res.body.calendario).toMatchObject({ expiracao: 86400 }));
+            await request(app.getHttpServer())
+                .patch(`/cob/${txid}`).send({ calendario: {} }).set("mocked-token", TOKEN)
+                .expect(200)
+                .expect((res) => expect(res.body.calendario).toMatchObject({ expiracao: 86400 }));
+            await request(app.getHttpServer())
+                .get(`/cob/${txid}`).set("mocked-token", TOKEN)
+                .expect(200)
+                .expect((res) => expect(res.body.calendario).toMatchObject({ expiracao: 86400 }));
+        });
+
+        it('PATCH /cob/{txid} altera só a expiração informada', async () => {
+            await request(app.getHttpServer())
+                .put(`/cob/${txid}`).send({ chave, valor: { original: '1.00' }, calendario: { expiracao: 3600 } }).set("mocked-token", TOKEN).expect(200);
+            await request(app.getHttpServer())
+                .patch(`/cob/${txid}`).send({ calendario: { expiracao: 7200 } }).set("mocked-token", TOKEN)
+                .expect(200)
+                .expect((res) => expect(res.body.calendario).toMatchObject({ expiracao: 7200 }));
+        });
+
         it('PATCH /cob/{txid} sem body continua válido (CobRevisada não tem obrigatórios)', async () => {
             await request(app.getHttpServer())
                 .put(`/cob/${txid}`).send({ chave, valor: { original: '1.00' } }).set("mocked-token", TOKEN).expect(200);

@@ -261,6 +261,10 @@ export class PSP {
                     }
                 }
 
+                if (itm.data.calendario) {
+                    itm.data.calendario = { ...curr.calendario, ...itm.data.calendario };
+                }
+
                 await this.cob.update(itm.IdOwner, { txid: itm.txid }, { ...curr, ...itm.data });
             }
             else {
