@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNotEmptyObject, IsNumberString, ValidateNested } from "class-validator"
+import { IsNotEmpty, IsNotEmptyObject, IsNumberString, ValidateNested, IsIn, IsOptional } from "class-validator"
 import { Chave, ICriacao, Expiracao, IInfoAdicional, Pessoa, PixID, ModalidadeAlteracao, Situacao, PixRevisao } from "../models"
 import { Type } from "class-transformer"
 import { IntersectionType } from '@nestjs/swagger';
@@ -53,9 +53,11 @@ export class CobPutRequest {
     @ValidateNested({})
     @Type(() => CobValor)
     valor: CobValor
+    @IsOptional()
     @ValidateNested({})
     @Type(() => Expiracao)
     calendario?: Expiracao
+    @IsOptional()
     @ValidateNested()
     @Type(() => Pessoa)
     devedor?: Pessoa
@@ -64,19 +66,25 @@ export class CobPutRequest {
 }
 
 export class CobPatchRequest {
+    @IsOptional()
     @ValidateNested({})
     @Type(() => LocID)
     loc?: LocID
+    @IsOptional()
     @ValidateNested({})
     @Type(() => CobValor)
     valor?: CobValor
+    @IsOptional()
     @ValidateNested()
     @Type(() => Expiracao)
     calendario?: Expiracao
+    @IsOptional()
     @ValidateNested({})
     @Type(() => Pessoa)
     devedor?: Pessoa
     solicitacaoPagador?: string
+    @IsOptional()
+    @IsIn([Situacao.Removida], { message: 'O campo $$ não respeita o schema.' })
     status?: "REMOVIDA_PELO_USUARIO_RECEBEDOR"
 }
 
@@ -125,8 +133,10 @@ export interface ICobQueryResponse {
 export class CobGetFilter {
     inicio: string
     fim: string
+    @IsOptional()
     @IsCPFValid({ message: 'O campo $$ não respeita o schema.' })
     cpf?: string
+    @IsOptional()
     @IsCNPJValid({ message: 'O campo $$ não respeita o schema.' })
     cnpj?: string
     paginacao?: { paginaAtual: number, itensPorPagina: number }

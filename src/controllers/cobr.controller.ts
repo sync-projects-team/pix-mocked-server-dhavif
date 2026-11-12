@@ -4,6 +4,7 @@ import { HttpInterceptor } from '../http.interceptor';
 import { CobRGetFilter, CobRPatchRequest, CobRPutRequest } from '../core/app/models/cobr';
 import { PixRequest } from '../core/app/models';
 import { randomUUID } from 'crypto';
+import { TxIdPipe } from '../validators/txid.pipe';
 
 @Controller("cobr")
 @UseInterceptors(HttpInterceptor)
@@ -11,7 +12,7 @@ export class CobRController {
   constructor(private readonly pspService: PSP) { }
 
   @Put(":txid")
-  async add(@Body() data: CobRPutRequest, @Param("txid") txid, @Headers() headers) {
+  async add(@Body() data: CobRPutRequest, @Param("txid", TxIdPipe) txid, @Headers() headers) {
     const IdOwner = headers["IdOwner"];
     const itm: PixRequest<CobRPutRequest> = { IdOwner, txid, data }
     return await null//this.pspService.addCob(itm);
@@ -51,12 +52,6 @@ export class CobRController {
     const IdOwner = headers["IdOwner"];
     const itm: PixRequest<CobRPatchRequest> = { IdOwner, txid, data }
     return this.pspService.editCob(itm);
-  }
-
-  @Get(":txid")
-  remove(@Param("txid") txid, @Headers() headers) {
-    const IdOwner = headers["IdOwner"];
-    return this.pspService.removeCob({ IdOwner, txid });
   }
 
 }

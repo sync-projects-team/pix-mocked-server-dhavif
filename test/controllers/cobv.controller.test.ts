@@ -72,11 +72,11 @@ describe('CobVController', () => {
     });
   })
 
-  describe('REMOVE', () => {
+  describe('CANCELAR', () => {
     it('success', async () => {
       await ctrl.create({ chave, valor}, txid, { IdOwner });
-      await expect(ctrl.remove(txid, { IdOwner })).resolves.toBeTruthy();
-      await expect(ctrl.read(txid, { IdOwner })).resolves.toBeUndefined();
+      await expect(ctrl.edit({ status: Situacao.Removida }, txid, { IdOwner })).resolves.toMatchObject({ txid, status: Situacao.Removida });
+      await expect(ctrl.read(txid, { IdOwner })).resolves.toMatchObject({ txid, status: Situacao.Removida });
     });
   })
 

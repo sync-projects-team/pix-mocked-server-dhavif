@@ -261,6 +261,10 @@ export class PSP {
                     }
                 }
 
+                if (itm.data.calendario) {
+                    itm.data.calendario = { ...curr.calendario, ...itm.data.calendario };
+                }
+
                 await this.cob.update(itm.IdOwner, { txid: itm.txid }, { ...curr, ...itm.data });
             }
             else {
@@ -277,17 +281,6 @@ export class PSP {
 
     async editCobV(itm: PixRequest<CobVPatchRequest>): Promise<CobVPatchResponse> {
         return (await this._editCob(itm, TipoCob.vencimento)) as CobVPatchResponse;
-    }
-
-    async _removeCob(key: PixID & { IdOwner: string }): Promise<boolean> {
-        await this.loccob.remove(key.IdOwner, { txid: key.txid });
-        return await this.cob.remove(key.IdOwner, { txid: key.txid });
-    }
-    async removeCob(key: PixID & { IdOwner: string }): Promise<boolean> {
-        return this._removeCob(key);
-    }
-    async removeCobV(key: PixID & { IdOwner: string }): Promise<boolean> {
-        return this._removeCob(key);
     }
 
     async readLoc({ IdOwner, id }: LocID & { IdOwner: string }): Promise<LocGetResponse> {

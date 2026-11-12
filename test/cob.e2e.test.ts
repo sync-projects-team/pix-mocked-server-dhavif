@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, INestApplication, ValidationError, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { randomUUID } from 'crypto';
@@ -7,6 +7,7 @@ import { MemoryDB } from '../src/libs/fakedb';
 import { correntistas } from '../src/data/db.json'
 import { gerarCNPJ } from '../src/libs/documentos';
 import { ModalidadeAlteracao } from '../src/core/app/models';
+import { configureApp } from '../src/app.setup';
 
 describe('COB', () => {
   let app: INestApplication;
@@ -27,33 +28,8 @@ describe('COB', () => {
     }).compile();
 
 
-    const errorFormatter = (errors: ValidationError[], errMessage?: any, parentField?: string): any => {
-      const message = errMessage || {};
-      let errorField = '';
-      let validationsList;
-
-      errors.forEach((error) => {
-        errorField = parentField ? `${parentField}.${error.property}` : error?.property;
-        if (!error?.constraints && error?.children?.length) {
-          errorFormatter(error.children, message, errorField);
-        } else {
-          validationsList = Object.values(error?.constraints);
-          message[errorField] = validationsList.length > 0 ? validationsList.pop() : 'Invalid Value!';
-        }
-      });
-
-      return message;
-    }
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({
-      disableErrorMessages: false,
-      transform: true,
-      skipMissingProperties: true,
-      exceptionFactory: (errors) => {
-        throw new BadRequestException(errorFormatter(errors))
-
-      }
-    }));
+    configureApp(app);
     await app.init();
   });
 
@@ -284,7 +260,7 @@ describe('COB', () => {
       it('O campo cob.devedor.cpf não respeita o schema.', async () => {
         await request(app.getHttpServer())
           .patch(`/cob/${txid}`)
-          .send({ devedor: { cpf: "abc123" } })
+          .send({ devedor: { nome: "Fulano de Tal", cpf: "abc123" } })
           .set("mocked-token", "123-abc")
           .expect(400)
           .expect((res) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, detail: "A cobrança não respeita o schema.", violacoes: [{ razao: "O campo cob.devedor.cpf não respeita o schema.", propriedade: "cob.devedor.cpf" }] }));
@@ -293,7 +269,7 @@ describe('COB', () => {
       it('O campo cob.devedor.cnpj não respeita o schema.', async () => {
         await request(app.getHttpServer())
           .patch(`/cob/${txid}`)
-          .send({ devedor: { cnpj: "abc123" } })
+          .send({ devedor: { nome: "Empresa de Tal", cnpj: "abc123" } })
           .set("mocked-token", "123-abc")
           .expect(400)
           .expect((res) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, detail: "A cobrança não respeita o schema.", violacoes: [{ razao: "O campo cob.devedor.cnpj não respeita o schema.", propriedade: "cob.devedor.cnpj" }] }));
@@ -302,7 +278,7 @@ describe('COB', () => {
       it('O campo cob.devedor.uf não respeita o schema.', async () => {
         await request(app.getHttpServer())
           .patch(`/cob/${txid}`)
-          .send({ devedor: { uf: "abc123" } })
+          .send({ devedor: { nome: "Fulano de Tal", cpf: "52998224725", uf: "abc123" } })
           .set("mocked-token", "123-abc")
           .expect(400)
           .expect((res) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, detail: "A cobrança não respeita o schema.", violacoes: [{ razao: "O campo cob.devedor.uf não respeita o schema.", propriedade: "cob.devedor.uf" }] }));

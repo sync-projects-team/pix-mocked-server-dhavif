@@ -1,4 +1,4 @@
-import { IsDateString, IsDefined, IsEnum, IsNotEmpty, IsNotEmptyObject, IsNumberString, MaxLength, ValidateNested } from "class-validator"
+import { IsDateString, IsDefined, IsEnum, IsNotEmpty, IsNotEmptyObject, IsNumberString, MaxLength, ValidateNested, IsOptional } from "class-validator"
 import { Pessoa, PixID } from "../models"
 import { Type } from "class-transformer"
 import { MinStringNumber, NotPast } from "../../../validators/custom-validators"
@@ -43,6 +43,7 @@ export class CalendarioRecorrencia {
     @NotPast({ message: 'O campo $$ é anterior à data de criação da cobrança.' })
     dataInicial: string
 
+    @IsOptional()
     @IsDateString({}, { message: 'O campo $$ não respeita o schema.' })
     @NotPast({ message: 'O campo $$ é anterior à data de criação da cobrança.' })
     dataFinal?: string

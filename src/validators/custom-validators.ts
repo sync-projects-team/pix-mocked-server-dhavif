@@ -22,7 +22,7 @@ export function IsDICTValid(validationOptions?: ValidationOptions) {
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
-            validator: { validate: (value: string) => !VALIDATORS.chaveDICT(propertyName, value) },
+            validator: { validate: (value: string) => typeof value === 'string' && !VALIDATORS.chaveDICT(propertyName, value) },
         });
     };
 
@@ -46,7 +46,7 @@ export function IsCPFValid(validationOptions?: ValidationOptions) {
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
-            validator: { validate: (value: string) => !VALIDATORS.cpf(propertyName, value) },
+            validator: { validate: (value: string) => typeof value === 'string' && !VALIDATORS.cpf(propertyName, value) },
         });
     };
 }
@@ -57,7 +57,7 @@ export function IsCNPJValid(validationOptions?: ValidationOptions) {
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
-            validator: { validate: (value: string) => !VALIDATORS.cnpj(propertyName, value) },
+            validator: { validate: (value: string) => typeof value === 'string' && !VALIDATORS.cnpj(propertyName, value) },
         });
     };
 }
@@ -69,7 +69,7 @@ export function IsCPFCNPJValid(validationOptions?: ValidationOptions) {
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
-            validator: { validate: (value: string) => (value.length === 11) ? !VALIDATORS.cpf(propertyName, value) : !VALIDATORS.cnpj(propertyName, value) },
+            validator: { validate: (value: string) => typeof value === 'string' && (value.length === 11) ? !VALIDATORS.cpf(propertyName, value) : !VALIDATORS.cnpj(propertyName, value) },
         });
     };
 }

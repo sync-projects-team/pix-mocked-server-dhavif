@@ -4,6 +4,7 @@ import { HttpInterceptor } from '../http.interceptor';
 import { CobGetFilter, CobPatchRequest, CobPutRequest } from '../core/app/models/cob';
 import { PixRequest } from '../core/app/models';
 import { randomUUID } from 'crypto';
+import { TxIdPipe } from '../validators/txid.pipe';
 
 @Controller("cob")
 @UseInterceptors(HttpInterceptor)
@@ -11,7 +12,7 @@ export class CobController {
   constructor(private readonly pspService: PSP) { }
 
   @Put(":txid")
-  async add(@Body() data: CobPutRequest, @Param("txid") txid, @Headers() headers) {
+  async add(@Body() data: CobPutRequest, @Param("txid", TxIdPipe) txid, @Headers() headers) {
     const IdOwner = headers["IdOwner"];
     const itm: PixRequest<CobPutRequest> = { IdOwner, txid, data }
     return await this.pspService.addCob(itm);
@@ -43,12 +44,6 @@ export class CobController {
     const IdOwner = headers["IdOwner"];
     const itm: PixRequest<CobPatchRequest> = { IdOwner, txid, data }
     return this.pspService.editCob(itm);
-  }
-
-  @Get(":txid")
-  remove(@Param("txid") txid, @Headers() headers) {
-    const IdOwner = headers["IdOwner"];
-    return this.pspService.removeCob({ IdOwner, txid });
   }
 
 }

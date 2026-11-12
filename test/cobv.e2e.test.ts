@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, INestApplication, ValidationError, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { randomUUID } from 'crypto';
@@ -10,6 +10,7 @@ import { ModalidadeDesconto, ModalidadeJurosDiasCorridos, ModalidadeMulta, Valid
 import { addDays } from '../src/libs/utils';
 import { CobVValor } from 'src/core/app/models/cobv';
 import { owners } from '../src/data/db.json'
+import { configureApp } from '../src/app.setup';
 
 
 describe('COBV', () => {
@@ -31,32 +32,8 @@ describe('COBV', () => {
     }).compile();
 
 
-    const errorFormatter = (errors: ValidationError[], errMessage?: any, parentField?: string): any => {
-      const message = errMessage || {};
-      let errorField = '';
-      let validationsList;
-
-      errors.forEach((error) => {
-        errorField = parentField ? `${parentField}.${error.property}` : error?.property;
-        if (!error?.constraints && error?.children?.length) {
-          errorFormatter(error.children, message, errorField);
-        } else {
-          validationsList = Object.values(error?.constraints);
-          message[errorField] = validationsList.length > 0 ? validationsList.pop() : 'Invalid Value!';
-        }
-      });
-
-      return message;
-    }
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({
-      disableErrorMessages: false,
-      transform: true,
-      skipMissingProperties: true,
-      exceptionFactory: (errors) => {
-        throw new BadRequestException(errorFormatter(errors))
-      }
-    }));
+    configureApp(app);
     await app.init();
   });
 
@@ -301,7 +278,7 @@ describe('COBV', () => {
       it('O campo cobv.devedor.cpf não respeita o schema.', async () => {
         await request(app.getHttpServer())
           .patch(`/cobv/${txid}`)
-          .send({ devedor: { cpf: "abc123" } })
+          .send({ devedor: { nome: "Fulano de Tal", cpf: "abc123" } })
           .set("mocked-token", "123-abc")
           .expect(400)
           .expect((res) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, detail: "A cobrança não respeita o schema.", violacoes: [{ razao: "O campo cobv.devedor.cpf não respeita o schema.", propriedade: "cobv.devedor.cpf" }] }));
@@ -310,7 +287,7 @@ describe('COBV', () => {
       it('O campo cobv.devedor.cnpj não respeita o schema.', async () => {
         await request(app.getHttpServer())
           .patch(`/cobv/${txid}`)
-          .send({ devedor: { cnpj: "abc123" } })
+          .send({ devedor: { nome: "Empresa de Tal", cnpj: "abc123" } })
           .set("mocked-token", "123-abc")
           .expect(400)
           .expect((res) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, detail: "A cobrança não respeita o schema.", violacoes: [{ razao: "O campo cobv.devedor.cnpj não respeita o schema.", propriedade: "cobv.devedor.cnpj" }] }));
@@ -319,7 +296,7 @@ describe('COBV', () => {
       it('O campo cobv.devedor.uf não respeita o schema.', async () => {
         await request(app.getHttpServer())
           .patch(`/cobv/${txid}`)
-          .send({ devedor: { uf: "abc123" } })
+          .send({ devedor: { nome: "Fulano de Tal", cpf: "52998224725", uf: "abc123" } })
           .set("mocked-token", "123-abc")
           .expect(400)
           .expect((res) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, detail: "A cobrança não respeita o schema.", violacoes: [{ razao: "O campo cobv.devedor.uf não respeita o schema.", propriedade: "cobv.devedor.uf" }] }));
@@ -388,13 +365,23 @@ describe('COBV', () => {
           .expect((res: any) => expect(JSON.parse(res.text)).toMatchObject({ chave, calendario }))
       });
 
-      it('mudança de expiração', async () => {
+      it('mudança de vencimento', async () => {
+        const novoCalendario = { dataDeVencimento: new Date(Date.now() + 10 * 86400000).toJSON().substring(0, 10), validadeAposVencimento: 15 };
         await request(app.getHttpServer())
           .patch(`/cobv/${txid}`)
-          .send({ calendario: { expiracao: 3600 } })
+          .send({ calendario: novoCalendario })
           .set("mocked-token", "123-abc")
           .expect(200)
-          .expect((res: any) => expect(JSON.parse(res.text)).toMatchObject({ chave, calendario: { expiracao: 3600 } }))
+          .expect((res: any) => expect(JSON.parse(res.text)).toMatchObject({ chave, calendario: novoCalendario }))
+      });
+
+      it('calendario sem dataDeVencimento (obrigatório na spec) retorna 400', async () => {
+        await request(app.getHttpServer())
+          .patch(`/cobv/${txid}`)
+          .send({ calendario: { validadeAposVencimento: 15 } })
+          .set("mocked-token", "123-abc")
+          .expect(400)
+          .expect((res: any) => expect(JSON.parse(res.text)).toMatchObject({ status: 400, violacoes: [{ propriedade: "cobv.calendario.dataDeVencimento", razao: "O campo cobv.calendario.dataDeVencimento não respeita o schema." }] }))
       });
 
       it('exclusao', async () => {
